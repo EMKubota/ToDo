@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Todo App</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+</head>
+<body>
+    <h1>Todo App</h1>
+    <form action="/" method="POST">
+        <label for="task">Task:</label>
+        <input type="text" id="task" name="task" required>
+
+        <label for="category">Category:</label>
+        <input type="text" id="category" name="category">
+
+        <label for="notes">Notes:</label>
+        <textarea id="notes" name="notes" rows="4" cols="50"></textarea>
+
+        <label for="due_date">Due Date:</label>
+        <input type="text" id="due_date" name="due_date" class="flatpickr" data-enable-time="true">
+
+        <button type="submit">Add Task</button>
+    </form>
+
+    <form action="/search" method="GET">
+        <label for="search_category">Search by Category:</label>
+        <input type="text" id="search_category" name="search_category">
+        <button type="submit">Search</button>
+    </form>
+
+    <ul>
+        {% for task in tasks %}
+            <li>
+                {{ task['task'] }} - Category: {{ task['category'] }} - Notes: {{ task['notes'] }} - Due Date: {{ task['due_date'] }}
+                <form action="/update/{{ loop.index() }}" method="POST" style="display: inline;">
+                    <button type="submit" name="status" value="completed">Marked Completed</button>
+                    <button type="submit" name="status" value="not_completed">Marked Not Completed</button>
+                </form>
+                <form action="/delete/{{ loop.index() }}" method="POST" style="display: inline;">
+                    <button type="submit">Delete</button>
+                </form>
+            </li>
+        {% endfor %}
+    </ul>
+
+    <script>
+        flatpickr(".flatpickr", {
+            enableTime: true,
+            dateFormat: "Y-m-d H:i",
+        });
+    </script>
+</body>
+</html>
