@@ -1,4 +1,5 @@
 from flask import Flask, render_template, request, redirect, url_for
+from flask_sqlalchemy import SQLAlchemy
 import datetime
 from plyer import notification
 from google.oauth2.credentials import Credentials
@@ -9,6 +10,10 @@ import json
 
 
 app = Flask(__name__)
+app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///example.sqlite"
+app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
+db = SQLAlchemy(app)
+
 
 tasks = []
 SCOPES = ['https://www.googleapis.com/auth/calendar.events']
@@ -113,15 +118,18 @@ def update_task(index):
             tasks[index]['completed'] = True
         elif status == 'not_completed':
             tasks[index]['completed'] = False
+    db.session.commit()
     return redirect(url_for('index'))
 
 @app.route('/delete/<int:index>', methods=['POST'])
 def delete_task(index):
     if request.method == 'POST':
         del tasks[index]
+    db.session.delete(tasks)
+    db.session.commit()
     return redirect(url_for('index'))
 
 if __name__ == '__main__':
     with app.app_context():
+        db.create_all()
         app.run(debug=True)
-    db.create_all()
