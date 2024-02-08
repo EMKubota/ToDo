@@ -5,9 +5,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Todo App</title>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css"> <!-- casscading style sheet -->
-    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
-    <title>Todo App</title>
+    <!-- Include Flatpickr CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css"> <!-- cascading style sheet -->
 </head>
 <body>
     <h1>Todo List</h1>
@@ -27,31 +26,40 @@
         <button type="submit">Add Task</button>
     </form>
 
+    <!-- Search by Category -->
+    <h2>Search by Category</h2>
     <form action="/search" method="GET">
         <label for="search_category">Search by Category:</label>
         <input type="text" id="search_category" name="search_category">
         <button type="submit">Search</button>
     </form>
 
+    <!-- Task List -->
+    <h2>All Tasks</h2>
     <ul>
         {% for task in tasks %}
             <li>
-                {{ task['task'] }} - Category: {{ task['category'] }} - Notes: {{ task['notes'] }} - Due Date: {{ task['due_date'] }}
-                <form action="/update/{{ loop.index() }}" method="POST" style="display: inline;">
-                    <button type="submit" name="status" value="completed">Marked Completed</button>
-                    <button type="submit" name="status" value="not_completed">Marked Not Completed</button>
-                </form>
-                <form action="/delete/{{ loop.index() }}" method="POST" style="display: inline;">
+                {{ task.task }} - Category: {{ task.category }} - Notes: {{ task.notes }} - Due Date: {{ task.due_date' }}
+                {% if task.completed %}
+                    <span>Completed</span>
+                {% else %}
+                    <form action="{{ url_for('toggle_task', id=task.id) }}" method="POST">
+                        <button type="submit">Marked as Completed</button>
+                    </form>
+                {% endif %}
+                <form action="{{ url_for('delete', id=task.id) }}" method="POST">
                     <button type="submit">Delete</button>
                 </form>
             </li>
         {% endfor %}
     </ul>
-
+    <!-- Include Flatpickr JavaScript -->
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
     <script>
-        flatpickr(".flatpickr", {
+        flatpickr("#due_date", {
             enableTime: true,
             dateFormat: "Y-m-d H:i",
+            minDate: "today",
         });
     </script>
 </body>
