@@ -1,3 +1,4 @@
+# imports databases from Flask
 from flask import Flask, render_template, request, redirect, url_for
 from flask_sqlalchemy import SQLAlchemy
 import datetime
@@ -8,7 +9,7 @@ from google.auth.transport.requests import Request
 import os.path
 
 
-app = Flask(__name__)
+app = Flask(__name__) # applies app name
 app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///example.sqlite"
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 db = SQLAlchemy(app)
@@ -17,6 +18,7 @@ db = SQLAlchemy(app)
 
 SCOPES = ['https://www.googleapis.com/auth/calendar.events']
 
+# Define Task Model
 class Task(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     task = db.Column(db.String(200), nullable=False)
@@ -68,7 +70,11 @@ def index():
         # Convert the due date string to a datetime object
         due_date = datetime.datetime.strptime(due_date_str, "%Y-%m-%d %H:%M") if due_date_str else None
 
-        tasks.append({'task': task, 'category': category, 'notes': notes, 'due_date': due_date})
+        # Create new Task object and add to database
+        new_task = Task(task=task, category=category, notes=notes, due_date=due_date)
+        db.session.add(new_task)
+        db.session.commit()
+        # tasks.append({'task': task, 'category': category, 'notes': notes, 'due_date': due_date})
 
         # Send notification
         send_notification(task, due_date)
@@ -76,6 +82,8 @@ def index():
         # Add event to Google Calendar
         add_event_to_calendar(task, due_date)
 
+    # Fetch all tasks from the database
+    tasks = Task.query.all()
     return render_template('index.html', task=tasks)
 
 @app.route('/search', methods=['GET'])
@@ -90,7 +98,7 @@ def search():
 
 
 def send_notification(task, due_date):
-    """Send notification using plyer."""
+    # Send notification using plyer.
     if due_date:
         notification_title = f"Task Reminder: {task}"
         notification_message = f"Due on {due_date.strftime('%Y-%m-%d %H:%M')}"
@@ -102,7 +110,7 @@ def send_notification(task, due_date):
 
 
 def add_event_to_calendar(task, due_date):
-    """Add event to Google Calendar."""
+    # Add event to Google Calendar.
     if due_date:
         service = get_google_calendar_service()
         event = {
@@ -120,22 +128,23 @@ def add_event_to_calendar(task, due_date):
         service.events().insert(calendarId='primary', body=event).execute()
 
 @app.route('/update/<int:index>', methods=['POST'])
-def update_task(index):
+def update_task(id):
     if request.method == 'POST':
+        task = Task.query.get_or_404(id)
         status = request.form.get('status')
         if status == 'complete':
-            tasks[index]['completed'] = True
+            task.completed = True
         elif status == 'not_completed':
-            tasks[index]['completed'] = False
+            task.completed = False
     db.session.commit()
     return redirect(url_for('index'))
 
 @app.route('/delete/<int:index>', methods=['POST'])
-def delete_task(index):
+def delete_task(id):
+    task = Task.query.get_or_404(id)
     if request.method == 'POST':
-        del tasks[index]
-    db.session.delete(tasks)
-    db.session.commit()
+        db.session.delete(task)
+        db.session.commit()
     return redirect(url_for('index'))
 
 if __name__ == '__main__':
