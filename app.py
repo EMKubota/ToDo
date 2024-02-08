@@ -1,4 +1,3 @@
-# imports databases from Flask
 from flask import Flask, render_template, request, redirect, url_for
 from flask_sqlalchemy import SQLAlchemy
 import datetime
@@ -7,6 +6,7 @@ from google.oauth2.credentials import Credentials
 from google_auth_oauthlib.flow import InstalledAppFlow
 from google.auth.transport.requests import Request
 import os.path
+import json
 
 
 app = Flask(__name__) # applies app name
