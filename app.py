@@ -15,9 +15,19 @@ app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 db = SQLAlchemy(app)
 
 
-tasks = []
+
 SCOPES = ['https://www.googleapis.com/auth/calendar.events']
 
+class Task(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    task = db.Column(db.String(200), nullable=False)
+    category = db.Column(db.String(100))
+    notes = db.Column(db.Text)
+    due_date = db.Column(db.DateTime)
+    completed = db.Column(db.Boolean, default=False)
+
+    def __repr__(self):
+        return f"<Task {self.id}: {self.task}>"
 
 def get_google_calendar_service():
     """Shows basic usage of the Google Calendar API.
