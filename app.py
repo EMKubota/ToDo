@@ -6,7 +6,6 @@ from google.oauth2.credentials import Credentials
 from google_auth_oauthlib.flow import InstalledAppFlow
 from google.auth.transport.requests import Request
 import os.path
-import json
 
 
 app = Flask(__name__) # applies app name
@@ -24,11 +23,12 @@ class Task(db.Model):
     task = db.Column(db.String(200), nullable=False)
     category = db.Column(db.String(100))
     notes = db.Column(db.Text)
+    priority = db.Column(db.String(100))
     due_date = db.Column(db.DateTime)
     completed = db.Column(db.Boolean, default=False)
 
     def __repr__(self):
-        return f"<Task {self.id}: {self.task}>"
+        return "<Task %r>" % self.id
 
 def get_google_calendar_service():
     """Shows basic usage of the Google Calendar API.

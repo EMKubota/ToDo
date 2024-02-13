@@ -20,9 +20,15 @@
         <label for="notes">Notes:</label>
         <textarea id="notes" name="notes" rows="4" cols="50"></textarea>
 
-        <label for="due_date">Due Date:</label>
-        <input type="text" id="due_date" name="due_date" class="flatpickr" data-enable-time="true">
+        <label for="priority">Priority:</label>
+        <select id="priority" name="priority">
+            <option value="Low"></option>
+            <option value="Medium"></option>
+            <option value="High"></option>
+        </select>
 
+        <label for="due_date">Due Date:</label>
+        <input type="text" id="due_date" name="due_date" required>
         <button type="submit">Add Task</button>
     </form>
 
@@ -44,10 +50,10 @@
                     <span>Completed</span>
                 {% else %}
                     <form action="{{ url_for('toggle_task', id=task.id) }}" method="POST">
-                        <button type="submit">Marked as Completed</button>
+                        <button type="submit" name="status" value="complete">Marked as Completed</button>
                     </form>
                 {% endif %}
-                <form action="{{ url_for('delete', id=task.id) }}" method="POST">
+                <form action="{{ url_for('delete_task', id=task.id) }}" method="POST">
                     <button type="submit">Delete</button>
                 </form>
             </li>
