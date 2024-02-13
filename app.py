@@ -5,11 +5,12 @@ from plyer import notification
 from google.oauth2.credentials import Credentials
 from google_auth_oauthlib.flow import InstalledAppFlow
 from google.auth.transport.requests import Request
+from googleapiclient.discovery import build
 import os.path
 
 
 app = Flask(__name__) # applies app name
-app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///example.sqlite"
+app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///db.sqlite"
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 db = SQLAlchemy(app)
 
