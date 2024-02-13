@@ -45,7 +45,7 @@
     <ul>
         {% for task in tasks %}
             <li>
-                {{ task.task }} - Category: {{ task.category }} - Notes: {{ task.notes }} - Due Date: {{ task.due_date' }}
+                {{ task.task }} - Category: {{ task.category }} - Notes: {{ task.notes }} - Priority: {{ task.priority }} - Due Date: {{ task.due_date' }}
                 {% if task.completed %}
                     <span>Completed</span>
                 {% else %}
