@@ -23,7 +23,7 @@ class Task(db.Model):
     task = db.Column(db.String(200), nullable=False)
     category = db.Column(db.String(100))
     notes = db.Column(db.Text)
-    priority = db.Column(db.String(100))
+    priority = db.Column(db.String(50))
     due_date = db.Column(db.DateTime)
     completed = db.Column(db.Boolean, default=False)
 
