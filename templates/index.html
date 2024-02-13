@@ -1,12 +1,11 @@
 <!DOCTYPE html>
-<!-- Write your comments here -->
-<html lang="en"> <!-- Language in English -->
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Todo App</title>
     <!-- Include Flatpickr CSS -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css"> <!-- cascading style sheet -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
 </head>
 <body>
     <h1>Todo List</h1>
@@ -45,13 +44,13 @@
     <ul>
         {% for task in tasks %}
             <li>
-                {{ task.task }} - Category: {{ task.category }} - Notes: {{ task.notes }} - Priority: {{ task.priority }} - Due Date: {{ task.due_date' }}
+                {{ task.task }} - Category: {{ task.category }} - Notes: {{ task.notes }} - Priority: {{ task.priority }} - Due Date: {{ task.due_date }}
                 {% if task.completed %}
                     <span>Completed</span>
                 {% else %}
-                    <form action="{{ url_for('toggle_task', id=task.id) }}" method="POST">
-                        <button type="submit" name="status" value="complete">Marked as Completed</button>
-                    </form>
+                    <form action="{{ url_for('update_task', id=task.id) }}" method="POST">
+                    <button type="submit" name="status" value="complete">Mark as Completed</button>
+                </form>
                 {% endif %}
                 <form action="{{ url_for('delete_task', id=task.id) }}" method="POST">
                     <button type="submit">Delete</button>
@@ -59,7 +58,7 @@
             </li>
         {% endfor %}
     </ul>
-    <!-- Include Flatpickr JavaScript -->
+<!-- Include Flatpickr JavaScript -->
     <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
     <script>
         flatpickr("#due_date", {

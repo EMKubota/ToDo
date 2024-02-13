@@ -5,20 +5,16 @@ from plyer import notification
 from google.oauth2.credentials import Credentials
 from google_auth_oauthlib.flow import InstalledAppFlow
 from google.auth.transport.requests import Request
-from googleapiclient.discovery import build
+from googleapiclient.discovery import build  # Added import for build
 import os.path
 
-
-app = Flask(__name__) # applies app name
-app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///db.sqlite"
+app = Flask(__name__)
+app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///example.sqlite"
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 db = SQLAlchemy(app)
 
-
-
 SCOPES = ['https://www.googleapis.com/auth/calendar.events']
 
-# Define Task Model
 class Task(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     task = db.Column(db.String(200), nullable=False)
@@ -36,12 +32,8 @@ def get_google_calendar_service():
     Returns service for interacting with the Google Calendar API.
     """
     creds = None
-    # The file token.json stores the user's access and refresh tokens, and is
-    # created automatically when the authorization flow completes for the first
-    # time.
     if os.path.exists('token.json'):
         creds = Credentials.from_authorized_user_file('token.json')
-    # If there are no (valid) credentials available, let the user log in.
     if not creds or not creds.valid:
         if creds and creds.expired and creds.refresh_token:
             creds.refresh(Request())
@@ -49,16 +41,15 @@ def get_google_calendar_service():
             flow = InstalledAppFlow.from_client_secrets_file(
                 'credentials.json', SCOPES)
             creds = flow.run_local_server(port=0)
-        # Save the credentials for the next run
         with open('token.json', 'w') as token:
             token.write(creds.to_json())
 
     return build_calendar_service(creds)
-
+    pass
 
 def build_calendar_service(creds):
     return build('calendar', 'v3', credentials=creds)
-
+    pass
 
 @app.route('/', methods=['GET', 'POST'])
 def index():
@@ -67,56 +58,45 @@ def index():
         category = request.form['category']
         notes = request.form['notes']
         due_date_str = request.form['due_date']
-
-        # Convert the due date string to a datetime object
         due_date = datetime.datetime.strptime(due_date_str, "%Y-%m-%d %H:%M") if due_date_str else None
 
-        # Create new Task object and add to database
         new_task = Task(task=task, category=category, notes=notes, due_date=due_date)
         db.session.add(new_task)
         db.session.commit()
-        # tasks.append({'task': task, 'category': category, 'notes': notes, 'due_date': due_date})
 
-        # Send notification
         send_notification(task, due_date)
 
-        # Add event to Google Calendar
         add_event_to_calendar(task, due_date)
 
-    # Fetch all tasks from the database
-    tasks = Task.query.all()
-    return render_template('index.html', task=tasks)
+    tasks = Task.query.all()  # Fetch all tasks from the database
+    return render_template('index.html', tasks=tasks)  # Pass tasks as tasks=tasks
+    pass
 
 @app.route('/search', methods=['GET'])
 def search():
     search_category = request.args.get('search_category', '').lower()
-
     if search_category:
-        filtered_tasks = [task for task in tasks if search_category in task['category'].lower()]
+        filtered_tasks = Task.query.filter(Task.category.ilike(f'%{search_category}%')).all()
         return render_template('index.html', tasks=filtered_tasks)
-
     return redirect(url_for('index'))
-
+    pass
 
 def send_notification(task, due_date):
-    # Send notification using plyer.
     if due_date:
         notification_title = f"Task Reminder: {task}"
         notification_message = f"Due on {due_date.strftime('%Y-%m-%d %H:%M')}"
-        notification.notify(
-            title=notification_title,
+        notification.notify(title=notification_title,
             message=notification_message,
             app_name='Todo App',
         )
-
+        pass
 
 def add_event_to_calendar(task, due_date):
-    # Add event to Google Calendar.
     if due_date:
         service = get_google_calendar_service()
         event = {
-            'summary': task,
-            'description': f"Category: {task['category']}\nNotes: {task['notes']}",
+            'summary': task.task,
+            'description': f"Category: {task.category}\nNotes: {task.notes}",
             'start': {
                 'dateTime': due_date.strftime('%Y-%m-%dT%H:%M:%S'),
                 'timeZone': 'UTC',
@@ -127,26 +107,27 @@ def add_event_to_calendar(task, due_date):
             },
         }
         service.events().insert(calendarId='primary', body=event).execute()
+        pass
 
-@app.route('/update/<int:index>', methods=['POST'])
+@app.route('/update/<int:id>', methods=['POST'])
 def update_task(id):
+    task = Task.query.get_or_404(id)
     if request.method == 'POST':
-        task = Task.query.get_or_404(id)
         status = request.form.get('status')
         if status == 'complete':
             task.completed = True
         elif status == 'not_completed':
             task.completed = False
-    db.session.commit()
-    return redirect(url_for('index'))
-
-@app.route('/delete/<int:index>', methods=['POST'])
-def delete_task(id):
-    task = Task.query.get_or_404(id)
-    if request.method == 'POST':
-        db.session.delete(task)
         db.session.commit()
     return redirect(url_for('index'))
+
+@app.route('/delete/<int:id>', methods=['POST'])
+def delete_task(id):
+    task = Task.query.get_or_404(id)
+    db.session.delete(task)
+    db.session.commit()
+    return redirect(url_for('index'))
+    pass
 
 if __name__ == '__main__':
     with app.app_context():
